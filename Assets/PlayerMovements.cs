@@ -26,6 +26,7 @@ public class PlayerMovements : MonoBehaviour
         HorInp = Input.GetAxis("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
 
+    
         if (movement.y != 0 || movement.x != 0) {
             anim.SetBool("move", true);
 
@@ -40,10 +41,16 @@ public class PlayerMovements : MonoBehaviour
         else if (HorInp > 0 && faceR) {
             flip();
         }
+
+        //Debug.Log(movement.x);
+        Debug.Log(movement);
     }
 
     void FixedUpdate() {
-
+        if (movement.x != 0 && movement.y != 0) {
+            movement.x = movement.x/1.4f;
+            movement.y = movement.y/1.4f;
+        }
         rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
     }
 
