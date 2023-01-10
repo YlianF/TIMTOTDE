@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public delegate void UdpOnReceived(byte[] data, int bytesRead, string IPaddress);
+
 public class UDPSocket
 {
     public Socket _socket;
@@ -14,7 +16,7 @@ public class UDPSocket
     private EndPoint epFrom = new IPEndPoint(IPAddress.Any, 0);
     private AsyncCallback recv = null;
 
-    //public event UdpOnReceived OnReceived;//
+    public event UdpOnReceived OnReceived;//
 
     public class State
     {
@@ -43,7 +45,7 @@ public class UDPSocket
         {
             State so = (State)ar.AsyncState;
             int bytes = _socket.EndSend(ar);
-            Debug.Log("SEND: " + bytes + ", " + text);
+            //Debug.Log("SEND: " + bytes + ", " + text);
             //Console.WriteLine("SEND: {0}, {1}", bytes, text);
         }, state);
     }
@@ -57,9 +59,9 @@ public class UDPSocket
                 State so = (State)ar.AsyncState;
                 int bytes = _socket.EndReceiveFrom(ar, ref epFrom);
                 _socket.BeginReceiveFrom(so.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv, so);
-                Debug.Log("RECV: " + epFrom.ToString() + ": " + bytes + ", " + Encoding.ASCII.GetString(so.buffer, 0, bytes));
+                //Debug.Log("RECV: " + epFrom.ToString() + ": " + bytes + ", " + Encoding.ASCII.GetString(so.buffer, 0, bytes));
                 //Console.WriteLine("RECV: {0}: {1}, {2}", epFrom.ToString(), bytes, Encoding.ASCII.GetString(so.buffer, 0, bytes));
-                //OnReceived?.Invoke(state.buffer, bytes, epFrom.ToString());//
+                OnReceived?.Invoke(state.buffer, bytes, epFrom.ToString());//
             }
             catch { }
 

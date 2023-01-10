@@ -5,6 +5,7 @@ using UnityEngine;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 public class scriptGameEngine : MonoBehaviour
 {
@@ -12,7 +13,20 @@ public class scriptGameEngine : MonoBehaviour
     public GameObject PJjoueur;
     public GameObject PJDistant;
     private Transform folderGame;
+
+    //objet joueur creer
+    //!\ faire une classe joueur par pitier
     private GameObject joueur;
+    private String idJoueur;
+    private GameObject joueur2;
+    private String idJoueur2;
+    private float x2;
+    private float y2;
+    private Boolean ifJ2;
+    private GameObject joueur3;
+    private String idJoueur3;
+    private GameObject joueur4;
+    private String idJoueur4;
 
     //socket pour la reception et l'envoie
     private UDPSocket socketReceive;
@@ -32,8 +46,18 @@ public class scriptGameEngine : MonoBehaviour
         //------------------------------------------------
         folderGame = new GameObject("Game").transform;
 
-        joueur = Instantiate(PJjoueur);
-        joueur.transform.SetParent(folderGame);
+        joueur = Instantiate(PJjoueur, folderGame);
+        //joueur.transform.SetParent(folderGame);
+        joueur2 = Instantiate(PJDistant, folderGame);
+        ifJ2 = false;
+
+        //set temporaire pour l'idJoueur
+        idJoueur = UnityEngine.Random.Range(0, 1000).ToString();
+
+        //set des autres idJoueur a null
+        idJoueur2 = null;
+        //idJoueur3 = null;
+        //idJoueur4 = null;
 
 
         //------------------------------------------------
@@ -147,7 +171,10 @@ public class scriptGameEngine : MonoBehaviour
         }
         while (i < tentativeMax);
 
-        socketSend.Send("idHere" + ":" + portLocal.ToString() + ":-1:-1");
+        //declancheur pour quand on recois un message du serveur
+        socketReceive.OnReceived += OnMsgRecieve;
+
+        socketSend.Send(idJoueur + ":" + portLocal.ToString() + ":-1:-1");
 
         nbDePassage = 0;
 
@@ -155,21 +182,21 @@ public class scriptGameEngine : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        if(nbDePassage==0)
-        {
-            GameObject joueur2 = GameObject.Instantiate(PJDistant, transform.position, transform.rotation);
-            joueur2.transform.SetParent(folderGame);
-        }
+        
+        //if(nbDePassage>=20)
+        //{
+            //nbDePassage = 1;
 
-
-        if(nbDePassage>=600)
-        {
-            nbDePassage = 1;
-            socketSend.Send("idHere" + ":" + portLocal.ToString() + ":" + joueur.transform.position.x + ":" + joueur.transform.position.y);
-        }
-        nbDePassage+=1;
+            //cette ligne la a commenter
+            //socketSend.Send(idJoueur + ":" + joueur.transform.position.x + ":" + joueur.transform.position.y);
+            if(ifJ2)
+            {   
+                joueur2.transform.position = new Vector2(x2, y2);
+            }
+        //}
+        //nbDePassage+=1;
         
     }
 
@@ -178,5 +205,41 @@ public class scriptGameEngine : MonoBehaviour
     {
         socketSend.Send("exit");
         socketReceive._socket.Close();
+    }
+
+
+    private void OnMsgRecieve(byte[] dataBytes, int bytesRead, string IPaddress)
+    {
+        try
+            {
+            string data = Encoding.ASCII.GetString(dataBytes, 0, bytesRead);
+            string[] dataDecoupe = data.Split(':');
+
+            for(int i = 1; i<dataDecoupe.Length; i+=3)
+            {
+                if(!dataDecoupe[i].Equals(idJoueur))
+                {
+                    //Debug.Log(i + "|" + dataDecoupe[i]);
+                    if(dataDecoupe[i].Equals(idJoueur2))
+                    {
+                        x2 = float.Parse(dataDecoupe[i+1]);
+                        y2 = float.Parse(dataDecoupe[i+2]);
+                        //joueur2.transform.position = new Vector2(x, y);
+                        //Debug.Log(x + ";" + y);
+                    }
+                    else
+                    {
+                        idJoueur2 = dataDecoupe[i];
+                        ifJ2 = true;
+                        x2 = float.Parse(dataDecoupe[i+1]);
+                        y2 = float.Parse(dataDecoupe[i+2]);
+                    }
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            Debug.Log(e);
+        }
     }
 }
