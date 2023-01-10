@@ -43,7 +43,7 @@ public class PlayerMovements : MonoBehaviour
         }
 
         //Debug.Log(movement.x);
-        Debug.Log(movement);
+        //Debug.Log(movement);
     }
 
     void FixedUpdate() {
